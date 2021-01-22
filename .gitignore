@@ -3,5 +3,24 @@
 .AppleDouble
 .LSOverride
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
 
 datasets/
+
+# Jupiter Checkpoints
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# dotenv
+.env
+
+# virtualenv
+.venv
+venv/
+ENV/
