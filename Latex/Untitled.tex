@@ -1,0 +1,339 @@
+\documentclass[12pt]{article}
+\usepackage[margin=0.75in]{geometry}
+\geometry{a4paper}
+\usepackage[T1]{fontenc} % Support Icelandic Characters
+\usepackage[utf8]{inputenc} % Support Icelandic Characters
+\usepackage{graphicx} % Support for including images
+\usepackage{hyperref} % Support for hyperlinks
+\usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage[table,xcdraw]{xcolor}
+\usepackage{booktabs}
+\usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
+\usepackage{systeme}
+\usepackage{wrapfig}
+\usepackage{lipsum}
+\usepackage[linesnumbered,ruled]{algorithm2e}
+
+\newtheorem{theorem}{Theorem}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+%------------------------------------------------------------------
+% TITLE
+%------------------------------------------------------------------
+\title{
+\centerline{\includegraphics[width=30mm]{figures/unipd-logo.png}}
+\vspace{0.2 cm}
+A Comparison Analysis of Accelegrad and UnixGrad Optimization Algorithms \\
+\vspace{0.3 cm}
+Optimization
+\large  \\
+\
+\small University of Padova - Master of Science in ICT for Internet and Multimedia
+  }
+
+\author{
+    Francesco Mandruzzato - 1204532\\
+    \small{francesco.mandruzzato.1@studenti.unipd.it}
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Accelegrad}
+
+\subsection{Previous related work}
+
+The Accelerated Gradient Descent method devised by Nesterov is a popular optimization technique which provides faster convergence rate $\mathcal{O}(1/T^2)$ in the smooth case, guaranteeing sublinear convergence rate $\mathcal{O}(1/T)$ for a general convex objective function $f$ with Lipschitz continuous gradient with constant $L$ > 0. The structure of the algorithm is divided in two different steps:
+
+\begin{enumerate}
+  \item \textbf{Extrapolation step}: We move along the direction of the difference between the last two iterates:
+  	  \begin{equation}
+  			y_k = x_k + \beta_k(x_k - x_{k-1}),
+	  \end{equation}
+	  were $\beta_k$ is chosen depending on the properties of $f$. Ideally this parameter regulates the amount of information that we want to keep regarding past iterates.
+  \item \textbf{Gradient step} We performe a step likewise the GD algorithm in $y_k$ to get the next point $x_{k+1}$:
+  	  \begin{equation}
+  			x_{k+1} = y_k - \alpha_k \nabla f(y_k),
+	  \end{equation} 
+	  where $\alpha_k = 1/L$ 
+\end{enumerate}
+
+Despite its efficiency, Accelerated Gradient Descent is inappropriate for handling noisy feedback because of the choice of the step size $\alpha_k$ and acceleration requires the knowledge of the objective's smoothness.
+
+One of the main popular adaptive first order methods comes with AdaGrad \cite{adagrad}. Informally, AdaGrad employs the geometry of the dataset in the sense that the adaptation of the step size $\alpha_k$ vary according with the dimension considered, in other words, it associates a small step size to frequently occurring features and a large step size to infrequent features. This adaptation is encoded in its update rule:
+\begin{equation}
+  x_{t+1} = \Pi_K^{G_t^{1/2}} (x_t - \eta G_t^{-1/2} g_t ),
+\end{equation}
+
+where $G_t = \sum_{\tau=1}^t g_t g_t^T $ is matrix of the previous subgradients, and $\Pi_K$ is the projection of the gradient into the set $K$. 
+Thanks to this adaption AdaGrad is able to handle noisy feedback, however there is no guarantee that AdaGrad can ensure acceleration, moreover it was unknown whether AdaGrad is able to exploit the smoothness in order to converge faster. In Accelegrad this adaptive learning rate technique is exploited. 
+
+The other main idea encapsulated into Accelegrad comes from \cite{linearcup} and is briefly described in the following. 
+
+Different from standard GD, Mirror Descent (MD) peeks a uniformly distributed sequences of points $(x_1,\dots,x_n)$ and it combines them to construct a stronger lower bound to the function $f$, in particular it is possible to prove that this method guarantees faster convergence rate as the average gradient becomes flatter. This is in contrast with the GD algorithm which provides faster convergence with large gradients. In light of this consideration, \cite{linearcup} propose a linear combination of the two algorithms at each step, in particular following Nesterov, given the gradient step $y_k$ and the mirror step $z_k$ the next step will be given by:
+\begin{equation}
+  x_{k+1} = \alpha z_k + (1-\alpha) y_k,
+\end{equation}
+
+where $\alpha_k$ is a tuneable parameter.
+It is possible to prove that this technique provides the same convergence guarantees of the accelerated gradient method of Nesterov in a nicer and simpler way, for this reason Accelegrad incorporates the notion of acceleration taking inspiration from this linear coupling framework.
+  
+\subsection{Accelegrad algorithm setting}
+
+In the Accelegrad paper \cite{accelegrad}, there is no assumption about the smoothness parameter $\beta$ (See Def.\ref{b-smooth}), but they assumed to be given a bound between some initial point $x_0$ and a global minimum of $f$ for a given compact convex set $K$ which contains this global minimizer. This distance is bounded by the diameter of $K$ i.e. $D = \max_{x,y \in K} \Vert x-y \Vert $. Finally they assume that the function $f$ is G-Lipschitz for which we provide the definition in (Def.\ref{g-lipschitz}).
+
+First, we discuss the offline setting where we have always access to the exact gradients of $f$, the algorithm is presented in Algo.\ref{alg:accelegrad-algo}. As we previously said, Accelegrad takes inspiration from \cite{linearcup} and linearly couples between two sequences $\{y_t\}_t$ and $\{z_t\}_t$ into $\{x_{t+1}\}_t$. These two sequences are updated in two different manners, the former ($y_{t+1}$), takes a step starting from $x_{t+1}$, the latter ($z_{t+1}$), takes a step starting from $z_t$. Both sequences are updated with the same step size but for $z_{t+1}$ the gradient is scaled by a factor of $\alpha_t$ and the final result is projected into $K$. The step size is defined taking inspiration from AdaGrad:
+\begin{equation}
+  \eta_t = \frac{2D}{(G^2 + \sum_{\tau = 0}^t \alpha_{\tau}^2 \Vert g_t \Vert^2)^2},
+\label{learning-1}
+\end{equation}
+where the only difference are the importances weights $\alpha_t$ defined as:
+\begin{equation}
+  \alpha_t = \begin{cases}
+				1 \ \ \ \ \ \ 0 \leq t \leq 2\\
+				\frac{1}{4}(t+1) \ \ \ \ \ \ \ t \geqslant 3
+			 \end{cases},
+\label{alpha}
+\end{equation}
+which increase with $t$, putting emphasis on recent queries of the gradient. 
+
+
+
+\begin{algorithm}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \Input{\#Iterations T, $x_0 \in K$, diameter $D$, weights $\alpha_{t \in T}$, learning rate $\eta_t$} 
+    Set $y_0 = x_0 = z_0$ \\
+    \For{$t=1\dots T$}
+      {
+      	Set $\tau_t = 1/\alpha_t$ \\
+      	Update:
+			$$ x_{t+1} = \tau_t z_t + (1-\tau_t) y_t, \ \ g_t = \nabla f(x_{t+1}) $$
+			$$ z_{t+1} = \Pi_K (z_t - \alpha_t \eta_t g_t) $$
+			$$ y_{t+1} = x_{t+1} - \eta_t g_t $$
+      }
+    \Output{$ \hat y_T \propto \sum_{t=0}^{T-1} \alpha_t y_{t+1} $}
+    \caption{Accelerated Adaptive Gradient Method (AcceleGrad)}
+    \label{alg:accelegrad-algo}
+\end{algorithm}
+
+\newpage
+
+Given the smooth and the non-smooth case, Accelegrad requires the following number of iterations to get a solution within $\epsilon$ respectively:
+\begin{itemize}
+  \item $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}} \ \ \ \ c = DG + \beta D^2log(\beta D/G)$
+  \item $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}} \ \ \ \ c = DG + \beta D^2log(\beta D/G)$
+\end{itemize}
+
+The synthetic proofs are provided in ...
+
+
+%Typically GD is analysed w.r.t a convex L-smooth function $f$, in this setup we get a quadratic upper bound of the form: 
+%$$
+%f(y) \leq f(x) + \langle \nabla f(x), y-x \rangle + \frac{L}{2} \Vert y-x \Vert^2. \forall y
+%$$
+%Under this assumption, using the GD update rule and a straightforward property of the convexity we get:
+%
+%$$
+%x_{k+1} = x_k - \alpha \nabla f(x_k) \ \ \ (GD \ update \ rule)
+%$$
+%$$
+%f(x) - f(y) - \nabla f(y)^T(x-y) \leq  \frac{L}{2} \Vert y-x \Vert^2, \forall x,y \in \mathbb{R}^n \ \ \ (Convexity \ property)
+%$$
+%$$
+%f(x_{k+1}) - f(x_k) \leq \nabla f(x_k)^T(x_k - \alpha \nabla f(x_k) - x_k ) + \Vert x_k - \alpha \nabla f(x_k) - x_k \Vert^2 = -(1-\frac{L\alpha}{2})\alpha \Vert \nabla f(x_k) \Vert^2,
+%$$
+%
+%which is maximised for $\alpha = 1/L$. The final term provides an upper bound on the gradient 
+
+\section{General definitions}
+
+
+\begin{definition}
+	A function $f: \mathbb{R}^n \rightarrow \mathbb{R}$ is $\beta$-smooth if:
+	$$
+		f(y) \leq f(x) + \nabla f(x)^T(y-x) + \frac{\beta}{2} \Vert x-y \Vert^2, \forall x,y \in \mathbb{R}^n
+	$$
+\label{b-smooth}
+\end{definition}
+
+\begin{definition}
+	$f$ is G-Lipschitz if $\forall w \in \Omega$ we have $\Vert \nabla f_i(w) \Vert \leq G$
+\label{g-lipschitz}
+\end{definition}
+
+\begin{definition}
+	Given a real-valued convex function $f$ with elements $x_1, \dots x_n$ in its domain and positive weights $a_i$, Jensen's inequality is stated as:
+	$$
+		f\bigg(\frac{\sum a_i x_i }{\sum a_i}\bigg) \leq \frac{\sum a_i f(x_i)}{\sum a_i}
+	$$
+\label{jensen}
+\end{definition}
+
+
+
+
+
+\section{Appendix with main proofs}
+
+\begin{theorem}
+Assume that $f$ is convex and $\beta$-smooth. Let $K$ be a convex set with bounded diameter D, and assume there exists a global minimizer for $f$ in $K$. Then Algorithm \ref{alg:accelegrad-algo} with weights equal to Equation \ref{alpha} and learning rate as in Equation \ref{learning-1} ensures:
+$$
+f(\hat y_t) - f(x^*) \leq \mathcal{O} \bigg (\frac{DG + \beta D^2 log(\beta D / G)}{T^2}\bigg)
+$$
+\label{Theorem-1-acc}
+\end{theorem}
+
+Since the proof of this Theorem is very long, we provide the most meaningful parts which guides us into deriving the upper bound on the error. 
+
+\begin{proof}
+Our objective is to find a bound of the left-side in order to precisely state the convergence rate of Accelegrad in the smooth case. Given the fact that the algorithm outputs a weighted average of gradients we may apply the Jensen Inequality defined in \ref{jensen} as:
+$$
+	f(\hat y_t) - f(x^*)	 \leq \frac{1}{\sum_{t=0}^{T-1} a_i} \sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) )
+$$
+
+Given the fact that $\sum_{t=0}^{T-1} a_i \geqslant \Omega(T^2) $ it is sufficient to bound the numerator by a constant in order to get the sublinear converge rate $\mathcal{O}(C/T^2)$ and the proof is concentrated precisely at this point. 
+
+Without re-writing the proof of Lemma described in the paper, we can bound our term of interest by:
+
+$$
+	\sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) )	 \leq (\alpha_t^2 - \alpha_t)(f(y_t)-f(y_{t+1})
+$$
+$$
++ \frac{\alpha_t^2}{2}\bigg(\beta_t - \frac{1}{\eta_t}\bigg) \Vert y_{t+1} - x_{t+1} \Vert^2 
+$$
+$$ 
++ \frac{1}{2\eta_t}(\Vert z_t - z \Vert^2 - \Vert z_{t+1} - z \Vert^2).
+$$
+
+Each term of the sum is in turn bounded, providing a more elegant overall bound:
+$$
+\frac{1}{2} \sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) )	 \leq \underbrace{\frac{D^2}{2 \eta_{T-1}} - \frac{1}{4} \sum_{t=\tau_*+1}^{T-1} \eta_t \alpha_t^2 \Vert g_t \Vert^2}_\text{(*)} + \underbrace{\frac{\beta}{2} \sum_{t=0}^{\tau_*} \eta_t^2 \alpha_t^2 \Vert g_t \Vert^2}_\text{(**)}.
+$$
+Now by fixing the learning rate equal to the value in Equation.\ref{learning-1}, we provide a final bound which is constant and we conclude the proof. These steps requires many computations and Lemmas that we skip in order to provide the higher point of view. 
+
+The final result is of the form:
+$$
+\frac{1}{2} \sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) )	 \leq DG/4 + 2\beta D^2 + 2\beta D^2 (1 + 2log(4\beta D / D)
+$$
+Combining this result with our initial inequality we get:
+$$
+f(\hat y_t) - f(x^*) \leq \frac{1}{\sum_{t=0}^{T-1} a_i} \sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) ) 
+$$
+$$
+\leq \frac{DG/2 + 8\beta D^2(1 + log(4\beta D / D)}{T^2 / 32}
+$$
+$$
+\approx \mathcal{O} \bigg( \frac{DG + \beta D^2 log(4\beta D / D)}{T^2} \bigg),
+$$
+where we used the fact that $\sum_{t=0}^{T-1} a_i \geqslant T^2 / 32 $, which conclude the proof for the smooth case.
+\end{proof}
+
+\begin{theorem}
+Assume that $f$ is convex and $G$-Lipschitz. Let $K$ be a convex set with bounded diameter D, and assume there exists a global minimizer for $f$ in $K$. Then Algorithm \ref{alg:accelegrad-algo} with weights equal to Equation \ref{alpha} and learning rate as in Equation \ref{learning-1} ensures:
+$$
+f(\hat y_t) - f(x^*) \leq \mathcal{O} \bigg ( GD \sqrt{log T} / \sqrt{T} \bigg)
+$$
+\label{Theorem-2-acc}
+\end{theorem}
+
+\begin{proof}
+The proof follows the same considerations of the previous one, this time we need to prove that $\sum_{t=0}^{T-1} a_i ( f(y_{t+1}) - f(x^*) )$ is bounded by $\mathcal{O}(T^{3/2})$. As in the previous case it is possible to prove that:
+$$
+\alpha_t (f(y_{t+1}) - f(x^*)) \leq \eta_t \alpha_t^2 \Vert g_t \Vert^2 + \eta_t \alpha_t^2 \Vert g_t \Vert + \frac{1}{2 \eta_t} ( \Vert z_t^2 - z \Vert - \Vert z_{t+1}^2 - z \Vert) 
+$$
+$$
++ (\alpha_t^2 -\alpha_t)(f(y_t)-f(y_{t+1})).
+$$
+As before, we can bound each term of this sum and the combine the results to conclude our proof.
+\end{proof}
+
+\begin{theorem}
+Assume that $f$ is convex and $G$-Lipschitz. Let $K$ be a convex set with bounded diameter D, and assume there exists a global minimizer for $f$ in $K$. Assume that we invole Algorithm \ref{alg:accelegrad-algo} with weights equal to Equation \ref{alpha} and learning rate as in Equation \ref{learning-1} ensures, but this time we provide it with noisy gradient estimates, then our algorithm ensures:
+$$
+\mathbb{E}[f(\hat y_t)] - f(x^*) \leq \mathcal{O} \bigg ( GD \sqrt{log T} / \sqrt{T} \bigg)
+$$
+\label{Theorem-2-acc}
+\end{theorem}
+
+\begin{proof}
+In order to provide the proof of this theorem we assume that upon querying a first order oracle with a point $x$, we receive a bounded and unbiased gradient estimate $\tilde g$ such that $\mathbb{E}[\tilde g | x] = \nabla f(x)$ with $\Vert \tilde g \Vert \leq G$	. As in the previous theorems we bound our term of interest by:
+
+\end{proof}
+
+
+\section{Online to Batch conversion}
+
+Online learning is the process of answering a sequence of questions given knowledge of the correct answers to the previous ones. Given a sequence of questions $S=(x_1, \dots, x_t)$, for each one of them sequentially our algorithm makes a prediction and then after the prediction the correct answer is revealed incurring in a loss. The goal of the learner is to minimize the loss also exploiting past information. If there is no correlation between samples, learning is hopeless.
+
+Intuitively, for each sample passed to the learner at stage $t$, the learner chose an hypothesis $h$ from the hypothesis class $H$ and predicts the label associated with the sample. For this reason we can define a regret function which measure "how sorry" the learner is not to have followed the best predictor $h^*$. Formally when running on a sequence of $T$ examples:
+$$
+	R_T(h^*) = \sum_{t=1}^{T} l(p_t,y_t) - \sum_{t=1}^{T} l(h^*(x_t),y_t),
+$$
+where $p_t$ is the prediction obtained by $h$ at stage $t$, and the regret w.r.t the hypothesis class $H$ is defined as:
+$$
+	R_T(H) := \max_{h^* \in H} R_T(h^*).
+$$
+Usually we look for an algorithm which converge sub-linearly to the lowest possible regret.
+
+What we described in short say that an online learning algorithm wants performance close to the single best hypothesis chosen in hindsight given all the data.
+
+Different from this practice, an online to batch converter needs to construct a model based on the set of modules generated by the online learner, this can be done in different ways but one of the most classical way is to take the average of these models. This conversion is needed because the individual iterates of an online algorithm do not come with individual guarantees. The standard online to batch conversion algorithm format is shown in Algo.\ref{alg:onlinetobatch}. In particular since the algorithm outputs an average of the iterates, we can apply Jensen's inequality to show the following:
+$$
+\mathbb{E}[L(\hat w) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{T}, 
+$$
+and as long as the algorithm obtains sublinear regret the left side part of the inequality will approach zero an average.
+
+\begin{algorithm}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \Input{\#Iterations $T$, Params $S$, Cost function $l$, Algorithm $A$}
+    \For{$t=1\dots T$}
+      {
+		let $w_t$ be the prediction of $A$, provide the cost function $l(w_t,g_t)$ to $A$
+		where $\mathbb{E}[g_t] = \nabla F(w_t)$
+      }
+    \Output{$\hat w = \frac{1}{T} \sum_{t=1}^T w_t$}
+    \caption{Online to batch conversion }
+    \label{alg:onlinetobatch}
+\end{algorithm}
+
+In \cite{cutkosky} to avoid the guarantees problems of single iterates it is provided a black box "Anytime" Online to Batch conversion algorithm. The "Anytime property" comes from the fact that the last iterate is always a good estimate of $x^*$. The algorithm is very similar to the classical online to batch previously shown. The key difference is that they evaluate the stochastic gradient oracle at $x_t$ rather than the iterates provided by the algorithm $A$, furthermore they incorporate the importance weights $\alpha_t$ which are useful to achieve faster convergence rates on smooth losses. 
+
+\begin{algorithm}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \Input{\#Iterations $T$, Online Algorithm $A$ with convex domain $D$, Non-negative weights $\alpha_t$ with $\alpha_t > 0$}
+    \For{$t=1\dots T$}
+      {
+		Get $x_t = \frac{\sum_{i=1}^t \alpha_i w_i}{\sum_{i=1}^t \alpha_i} $ \\
+		Play $x_t$ and receive subgradient $g_t$ \\
+		Send $l_t(x) = \langle \alpha_t g_t,x\rangle$ to $a$ as the $t$th loss \\
+		Get $w_{t+1}$ from $A$
+      }
+    \Output{$x_T$}
+    \caption{Anytime Online to batch conversion }
+    \label{alg:anytime}
+\end{algorithm}
+
+Different from the standard online to batch conversion, this algorithm is able to achieve the following guarantees for every $x^* \in D$:
+$$
+\mathbb{E}[L(x_T) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{\sum_{t=1}^T \alpha_t}, 
+$$ 
+
+in particular this bound is valid also for loss functions with some known non-linearity. 
+
+\bibliography{bibliography.bib} 
+\bibliographystyle{ieeetr}
+\end{document}
+
+
+
