@@ -44,11 +44,13 @@ Optimization
 
 \maketitle
 
+\section{Introduction}
+
 \section{Accelegrad}
 
 \subsection{Previous related work}
 
-The Accelerated Gradient Descent method devised by Nesterov is a popular optimization technique which provides faster convergence rate $\mathcal{O}(1/T^2)$ in the smooth case, guaranteeing sublinear convergence rate $\mathcal{O}(1/T)$ for a general convex objective function $f$ with Lipschitz continuous gradient with constant $L$ > 0. The structure of the algorithm is divided in two different steps:
+The Accelerated Gradient Descent method devised by Nesterov is a popular optimization technique which provides faster convergence rate $\mathcal{O}(1/T^2)$ in the smooth setting, guaranteeing standard rate $\mathcal{O}(1/\sqrt T)$ for a general convex objective function $f$. The structure of the algorithm is divided in two different steps:
 
 \begin{enumerate}
   \item \textbf{Extrapolation step}: We move along the direction of the difference between the last two iterates:
@@ -63,19 +65,38 @@ The Accelerated Gradient Descent method devised by Nesterov is a popular optimiz
 	  where $\alpha_k = 1/L$ 
 \end{enumerate}
 
-Despite its efficiency, Accelerated Gradient Descent is inappropriate for handling noisy feedback because of the choice of the step size $\alpha_k$ and acceleration requires the knowledge of the objective's smoothness.
+Despite its efficiency, Accelerated Gradient Descent is inappropriate for handling noisy feedback because of the choice of the fixed step size $\alpha_k$, moreover acceleration requires the knowledge of the objective's smoothness.
 
-One of the main popular adaptive first order methods comes with AdaGrad \cite{adagrad}. Informally, AdaGrad employs the geometry of the dataset in the sense that the adaptation of the step size $\alpha_k$ vary according with the dimension considered, in other words, it associates a small step size to frequently occurring features and a large step size to infrequent features. This adaptation is encoded in its update rule:
+One of the main popular adaptive first order methods comes with AdaGrad \cite{adagrad}. Informally, AdaGrad exploits the geometry of the dataset in the sense that the adaptation of the step size $\alpha_k$ vary with the dimension considered, in other words, it associates a small step size to frequently occurring features and a large step size to infrequent features. This adaptation is encoded in its update rule:
 \begin{equation}
   x_{t+1} = \Pi_K^{G_t^{1/2}} (x_t - \eta G_t^{-1/2} g_t ),
 \end{equation}
 
-where $G_t = \sum_{\tau=1}^t g_t g_t^T $ is matrix of the previous subgradients, and $\Pi_K$ is the projection of the gradient into the set $K$. 
-Thanks to this adaption AdaGrad is able to handle noisy feedback, however there is no guarantee that AdaGrad can ensure acceleration, moreover it was unknown whether AdaGrad is able to exploit the smoothness in order to converge faster. In Accelegrad this adaptive learning rate technique is exploited. 
+where $G_t = \sum_{\tau=1}^t g_t g_t^T $ is the matrix of the previous subgradients, and $\Pi_K$ is the projection of the gradient into the set $K$. 
+With this adaption AdaGrad may handle noisy feedback, however there is no guarantee that AdaGrad can ensure acceleration, moreover it was unknown whether AdaGrad is able to exploit the smoothness in order to converge faster. Considering the advantage of handling noisy feedback to ensure a solid acceleration, Accelegrad takes inspiration from the update rule of AdaGrad. 
 
-The other main idea encapsulated into Accelegrad comes from \cite{linearcup} and is briefly described in the following. 
+Regarding acceleration, an elegant way of interpreting it comes from \cite{linearcup} and we provide the high level concept which is useful to understand the algorithm steps. 
 
-Different from standard GD, Mirror Descent (MD) peeks a uniformly distributed sequences of points $(x_1,\dots,x_n)$ and it combines them to construct a stronger lower bound to the function $f$, in particular it is possible to prove that this method guarantees faster convergence rate as the average gradient becomes flatter. This is in contrast with the GD algorithm which provides faster convergence with large gradients. In light of this consideration, \cite{linearcup} propose a linear combination of the two algorithms at each step, in particular following Nesterov, given the gradient step $y_k$ and the mirror step $z_k$ the next step will be given by:
+In \emph{Allen-Zhu} and \emph{Orecchia}, they combine standard Gradient Descent and Mirror Descent to yield a new and simple accelerated gradient method for smooth convex optimization problems.
+Given an $L$-smooth function $f$ we are able to find a quadratic upper bound of the form:
+$$
+f(y) \leq f(x) + \langle \nabla f(x),y-x \rangle + \frac{L}{2} \Vert y - x \Vert^2. \ \ \ \ \forall y
+$$
+This is particularly useful to find an upper bound to the maximal objective decrease given as:
+$$
+f(x_{k+1})-f(x_k) \leq - \frac{1}{2L}\Vert \nabla f(x_k) \Vert^2.
+$$
+From this point it should be clear that the larger the magnitude of the gradient the better may be the convergence speed of Gradient Descent. Mirror Descent instead peeks a uniformly distributed sequences of points $(x_1,\dots,x_n)$ and it combines them to construct a stronger lower bound to the function $f$ which is not provided by the standard Gradient Descent, in particular this lower bound is obtained as: 
+$$
+f(y) \geqslant \frac{1}{n} \sum_{t=1}^{n} f(x_t) + \frac{1}{n} \sum_{t=1}^{n} \langle \nabla f(x_t), y-x_t \rangle \ \ \ \forall y.
+$$
+To construct a good upper bound instead we consider the mean of the queried points and by the convexity property we get $f(\hat x) \leq \frac{1}{n} \sum_{t=1}^n f(t_i)$. Combining this with the previous result we get:
+$$
+f(\hat x) - f(y) \leq \frac{1}{n} \sum_{t=1}^{n} \langle \nabla f(x_t), y-x_t \rangle, 
+$$ 
+which is known as the regret bound $R_n(y)$. Intuitively since we want to keep as small as possible the regret of an algorithm, contrary to gradient descent we need to receive small gradients, in fact it is possible to prove that Mirror Descent converge faster with small gradient magnitudes. 
+
+In light of this consideration, they propose a linear combination of the two algorithms at each step, in particular following Nesterov, given the gradient step $y_k$ and the mirror step $z_k$ the next step will be given by:
 \begin{equation}
   x_{k+1} = \alpha z_k + (1-\alpha) y_k,
 \end{equation}
@@ -85,7 +106,7 @@ It is possible to prove that this technique provides the same convergence guaran
   
 \subsection{Accelegrad algorithm setting}
 
-In the Accelegrad paper \cite{accelegrad}, there is no assumption about the smoothness parameter $\beta$ (See Def.\ref{b-smooth}), but they assumed to be given a bound between some initial point $x_0$ and a global minimum of $f$ for a given compact convex set $K$ which contains this global minimizer. This distance is bounded by the diameter of $K$ i.e. $D = \max_{x,y \in K} \Vert x-y \Vert $. Finally they assume that the function $f$ is G-Lipschitz for which we provide the definition in (Def.\ref{g-lipschitz}).
+In the Accelegrad paper \cite{accelegrad}, there is no assumption about the smoothness parameter $\beta$ (See Def.\ref{b-smooth} of smoothness), but they assumed to be given a bound between some initial point $x_0$ and a global minimum of $f$ for a given compact convex set $K$ which contains this global minimizer. This distance is bounded by the diameter of $K$ i.e. $D = \max_{x,y \in K} \Vert x-y \Vert $. Finally they assume that the function $f$ is G-Lipschitz for which we provide the definition in (Def.\ref{g-lipschitz}).
 
 First, we discuss the offline setting where we have always access to the exact gradients of $f$, the algorithm is presented in Algo.\ref{alg:accelegrad-algo}. As we previously said, Accelegrad takes inspiration from \cite{linearcup} and linearly couples between two sequences $\{y_t\}_t$ and $\{z_t\}_t$ into $\{x_{t+1}\}_t$. These two sequences are updated in two different manners, the former ($y_{t+1}$), takes a step starting from $x_{t+1}$, the latter ($z_{t+1}$), takes a step starting from $z_t$. Both sequences are updated with the same step size but for $z_{t+1}$ the gradient is scaled by a factor of $\alpha_t$ and the final result is projected into $K$. The step size is defined taking inspiration from AdaGrad:
 \begin{equation}
@@ -100,7 +121,7 @@ where the only difference are the importances weights $\alpha_t$ defined as:
 			 \end{cases},
 \label{alpha}
 \end{equation}
-which increase with $t$, putting emphasis on recent queries of the gradient. 
+which increase with $t$, putting emphasis on recent queries of the gradient. As we are considering the smooth setting it is not required the function to be $G$-Lipschitz which usually becomes important in the non smooth setting.
 
 
 
@@ -125,11 +146,11 @@ which increase with $t$, putting emphasis on recent queries of the gradient.
 
 \newpage
 
-Given the smooth and the non-smooth case, Accelegrad requires the following number of iterations to get a solution within $\epsilon$ respectively:
-\begin{itemize}
-  \item $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}} \ \ \ \ c = DG + \beta D^2log(\beta D/G)$
-  \item $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}} \ \ \ \ c = DG + \beta D^2log(\beta D/G)$
-\end{itemize}
+For the smooth setting Accelegrad requires a number of iterations to get a solution within $\epsilon$ of $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}}$ with $c = DG + \beta D^2log(\beta D/G)$, which means that the algorithm is able to converge as fast as the Accelerated gradient method asymptotically. In reality, since we are dealing with smooth functions we don't need to consider $G$, which means that the costant $c$ is actually equal to $c = \beta D  log(\beta D /\Vert g_0 \Vert)$.
+
+Considering the non smooth setting the previous algorithm is able to ensure standard sublinear convergence rate of $\mathcal{O}(1/\sqrt T)$
+
+
 
 The synthetic proofs are provided in ...
 
@@ -151,6 +172,11 @@ The synthetic proofs are provided in ...
 %$$
 %
 %which is maximised for $\alpha = 1/L$. The final term provides an upper bound on the gradient 
+
+\section{UnixGrad}
+\subsection{Previous related works}
+\subsection{UnixGrad algorithm setting}
+\section{Comparison Results}
 
 \section{General definitions}
 
