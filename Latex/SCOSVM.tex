@@ -94,7 +94,7 @@ To construct a good upper bound instead we consider the mean of the queried poin
 $$
 f(\hat x) - f(y) \leq \frac{1}{n} \sum_{t=1}^{n} \langle \nabla f(x_t), y-x_t \rangle, 
 $$ 
-which is known as the regret bound $R_n(y)$. Intuitively since we want to keep as small as possible the regret of an algorithm, contrary to gradient descent we need to receive small gradients, in fact it is possible to prove that Mirror Descent converge faster with small gradient magnitudes. 
+which is known as the regret bound $R_n(y)$. Intuitively since we want to keep as small as possible the regret of an algorithm, contrary to gradient descent we need to receive small gradients, in fact it is possible to prove that Mirror Descent converge faster with small gradient magnitudes as it's converge rate is $\mathcal{O}(\rho^2/\epsilon^2)$ where $\rho^2$  is equal to the average magnitude of the queried gradients.
 
 In light of this consideration, they propose a linear combination of the two algorithms at each step, in particular following Nesterov, given the gradient step $y_k$ and the mirror step $z_k$ the next step will be given by:
 \begin{equation}
@@ -146,13 +146,11 @@ which increase with $t$, putting emphasis on recent queries of the gradient. As 
 
 \newpage
 
-For the smooth setting Accelegrad requires a number of iterations to get a solution within $\epsilon$ of $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}}$ with $c = DG + \beta D^2log(\beta D/G)$, which means that the algorithm is able to converge as fast as the Accelerated gradient method asymptotically. In reality, since we are dealing with smooth functions we don't need to consider $G$, which means that the costant $c$ is actually equal to $c = \beta D  log(\beta D /\Vert g_0 \Vert)$.
+For the smooth setting Accelegrad requires a number of iterations to get a solution within $\epsilon$ of $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}}$ with $c = DG + \beta D^2log(\beta D/G)$, which means that the algorithm is able to converge as fast as the Accelerated gradient method asymptotically. In reality, since we are dealing with smooth functions we don't need to consider $G$, which means that the constant $c$ is actually equal to $c = \beta D  log(\beta D /\Vert g_0 \Vert)$.
 
-Considering the non smooth setting the previous algorithm is able to ensure standard sublinear convergence rate of $\mathcal{O}(1/\sqrt T)$
+Considering the non smooth setting the previous algorithm is able to ensure standard sublinear convergence rate of $\mathcal{O}(1/\sqrt T)$. With this rate of convergence Accelegrad requires a number of iterations to get a solution within $\epsilon$ of..., this result is also true for the stochastic optimization setting. In the Appendix we provide a short version of the proofs regarding the convergence rate for these three cases. 
 
 
-
-The synthetic proofs are provided in ...
 
 
 %Typically GD is analysed w.r.t a convex L-smooth function $f$, in this setup we get a quadratic upper bound of the form: 
@@ -176,7 +174,76 @@ The synthetic proofs are provided in ...
 \section{UnixGrad}
 \subsection{Previous related works}
 \subsection{UnixGrad algorithm setting}
+
 \section{Comparison Results}
+
+In this section we provide a comparison between AcceleGrad and UnixGrad. We test the two algorithm with some SVM problems taken from LIBSVM. In particular we worked with \emph{breast-cancer} and \emph{adult} datasets. We try to minimize the L2-regularized squared hinge loss using random mini-batches of size 5, with random weights initialization. For both UnixGrad and Accelegrad we measure the performance with respect to the average iterate which results in a more stable behaviour. 
+
+
+\section{Online to Batch conversion}
+
+Online learning is the process of answering a sequence of questions given knowledge of the correct answers to the previous ones. Given a sequence of questions $S=(x_1, \dots, x_t)$, for each one of them sequentially our algorithm makes a prediction and then after the prediction the correct answer is revealed incurring in a loss. The goal of the learner is to minimize the loss also exploiting past information. If there is no correlation between samples, learning is hopeless.
+
+Intuitively, for each sample passed to the learner at stage $t$, the learner chose an hypothesis $h$ from the hypothesis class $H$ and predicts the label associated with the sample. For this reason we can define a regret function which measure "how sorry" the learner is not to have followed the best predictor $h^*$. Formally when running on a sequence of $T$ examples:
+$$
+	R_T(h^*) = \sum_{t=1}^{T} l(p_t,y_t) - \sum_{t=1}^{T} l(h^*(x_t),y_t),
+$$
+where $p_t$ is the prediction obtained by $h$ at stage $t$, and the regret w.r.t the hypothesis class $H$ is defined as:
+$$
+	R_T(H) := \max_{h^* \in H} R_T(h^*).
+$$
+Usually we look for an algorithm which converge sub-linearly to the lowest possible regret.
+
+What we described in short say that an online learning algorithm wants performance close to the single best hypothesis chosen in hindsight given all the data.
+
+Different from this practice, an online to batch converter needs to construct a model based on the set of modules generated by the online learner, this can be done in different ways but one of the most classical way is to take the average of these models. This conversion is needed because the individual iterates of an online algorithm do not come with individual guarantees. The standard online to batch conversion algorithm format is shown in Algo.\ref{alg:onlinetobatch}. In particular since the algorithm outputs an average of the iterates, we can apply Jensen's inequality to show the following:
+$$
+\mathbb{E}[L(\hat w) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{T}, 
+$$
+and as long as the algorithm obtains sublinear regret the left side part of the inequality will approach zero an average.
+
+\begin{algorithm}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \Input{\#Iterations $T$, Params $S$, Cost function $l$, Algorithm $A$}
+    \For{$t=1\dots T$}
+      {
+		let $w_t$ be the prediction of $A$, provide the cost function $l(w_t,g_t)$ to $A$
+		where $\mathbb{E}[g_t] = \nabla F(w_t)$
+      }
+    \Output{$\hat w = \frac{1}{T} \sum_{t=1}^T w_t$}
+    \caption{Online to batch conversion }
+    \label{alg:onlinetobatch}
+\end{algorithm}
+
+In \cite{cutkosky} to avoid the guarantees problems of single iterates it is provided a black box "Anytime" Online to Batch conversion algorithm. The "Anytime property" comes from the fact that the last iterate is always a good estimate of $x^*$. The algorithm is very similar to the classical online to batch previously shown. The key difference is that they evaluate the stochastic gradient oracle at $x_t$ rather than the iterates provided by the algorithm $A$, furthermore they incorporate the importance weights $\alpha_t$ which are useful to achieve faster convergence rates on smooth losses. 
+
+\begin{algorithm}
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Output}{Output}
+
+    \Input{\#Iterations $T$, Online Algorithm $A$ with convex domain $D$, Non-negative weights $\alpha_t$ with $\alpha_t > 0$}
+    \For{$t=1\dots T$}
+      {
+		Get $x_t = \frac{\sum_{i=1}^t \alpha_i w_i}{\sum_{i=1}^t \alpha_i} $ \\
+		Play $x_t$ and receive subgradient $g_t$ \\
+		Send $l_t(x) = \langle \alpha_t g_t,x\rangle$ to $a$ as the $t$th loss \\
+		Get $w_{t+1}$ from $A$
+      }
+    \Output{$x_T$}
+    \caption{Anytime Online to batch conversion }
+    \label{alg:anytime}
+\end{algorithm}
+
+Different from the standard online to batch conversion, this algorithm is able to achieve the following guarantees for every $x^* \in D$:
+$$
+\mathbb{E}[L(x_T) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{\sum_{t=1}^T \alpha_t}, 
+$$ 
+
+in particular this bound is valid also for loss functions with some known non-linearity. In the Appendix we provide a proof sketch of this bound.
+
+
 
 \section{General definitions}
 
@@ -289,73 +356,45 @@ $$
 \end{theorem}
 
 \begin{proof}
-In order to provide the proof of this theorem we assume that upon querying a first order oracle with a point $x$, we receive a bounded and unbiased gradient estimate $\tilde g$ such that $\mathbb{E}[\tilde g | x] = \nabla f(x)$ with $\Vert \tilde g \Vert \leq G$	. As in the previous theorems we bound our term of interest by:
+In order to provide the proof of this theorem we assume that upon querying a first order oracle with a point $x$, we receive a bounded and unbiased gradient estimate $\tilde g$ such that $\mathbb{E}[\tilde g | x] = \nabla f(x)$ with $\Vert \tilde g \Vert \leq G$	. As in the previous theorems we need to find an upper bound for $\mathbb{E}[f(\hat y_t)] - f(x^*)$ to obtain that convergence rate. Obviously this bound is a bit different from the previous ones but the concept is the same.  
 
 \end{proof}
 
-
-\section{Online to Batch conversion}
-
-Online learning is the process of answering a sequence of questions given knowledge of the correct answers to the previous ones. Given a sequence of questions $S=(x_1, \dots, x_t)$, for each one of them sequentially our algorithm makes a prediction and then after the prediction the correct answer is revealed incurring in a loss. The goal of the learner is to minimize the loss also exploiting past information. If there is no correlation between samples, learning is hopeless.
-
-Intuitively, for each sample passed to the learner at stage $t$, the learner chose an hypothesis $h$ from the hypothesis class $H$ and predicts the label associated with the sample. For this reason we can define a regret function which measure "how sorry" the learner is not to have followed the best predictor $h^*$. Formally when running on a sequence of $T$ examples:
+\begin{theorem}
+Suppose $g_1, \dots, g_t$ satisfy $\mathbb{E}[g_t|x_t] \in \delta L(x_t)$ for some objective function $L$ and $g_t$ is independent of all other quantities given $x_t$. Let $R_T(x^*)$ be a bound on the linearized regret of the Anytime Online to Batch algorithm. 
 $$
-	R_T(h^*) = \sum_{t=1}^{T} l(p_t,y_t) - \sum_{t=1}^{T} l(h^*(x_t),y_t),
+R_T(x^*) \geqslant \sum_{t=1}^T \langle \alpha_t g_t, w_t - x^* \rangle 
 $$
-where $p_t$ is the prediction obtained by $h$ at stage $t$, and the regret w.r.t the hypothesis class $H$ is defined as:
+Then for all $x^* \in D$, the algorithm guarantees:
 $$
-	R_T(H) := \max_{h^* \in H} R_T(h^*).
+\mathbb{E}[L(x_t)-L(x^*)] \leq \mathbb{E}\bigg[\frac{R_T(x^*)}{\sum_{t=1}^T \alpha_t}\bigg]
 $$
-Usually we look for an algorithm which converge sub-linearly to the lowest possible regret.
-
-What we described in short say that an online learning algorithm wants performance close to the single best hypothesis chosen in hindsight given all the data.
-
-Different from this practice, an online to batch converter needs to construct a model based on the set of modules generated by the online learner, this can be done in different ways but one of the most classical way is to take the average of these models. This conversion is needed because the individual iterates of an online algorithm do not come with individual guarantees. The standard online to batch conversion algorithm format is shown in Algo.\ref{alg:onlinetobatch}. In particular since the algorithm outputs an average of the iterates, we can apply Jensen's inequality to show the following:
+Furthermore, suppose that $D$ has a diameter $B$ and $\Vert g_t \Vert_{*} \leq G$ with probability 1 for some $G$. Then with probability at least $1-\delta$:
 $$
-\mathbb{E}[L(\hat w) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{T}, 
+L(x_T)-L(x^*) \leq \frac{R_T(x^*)+2BG \sqrt{\sum_{t=1}^T \alpha_t^2 log(2/\delta)}}{\alpha_{1:T}}
 $$
-and as long as the algorithm obtains sublinear regret the left side part of the inequality will approach zero an average.
+\label{Ashokproof-1}
+\end{theorem}
 
-\begin{algorithm}
-    \SetKwInOut{Input}{Input}
-    \SetKwInOut{Output}{Output}
-
-    \Input{\#Iterations $T$, Params $S$, Cost function $l$, Algorithm $A$}
-    \For{$t=1\dots T$}
-      {
-		let $w_t$ be the prediction of $A$, provide the cost function $l(w_t,g_t)$ to $A$
-		where $\mathbb{E}[g_t] = \nabla F(w_t)$
-      }
-    \Output{$\hat w = \frac{1}{T} \sum_{t=1}^T w_t$}
-    \caption{Online to batch conversion }
-    \label{alg:onlinetobatch}
-\end{algorithm}
-
-In \cite{cutkosky} to avoid the guarantees problems of single iterates it is provided a black box "Anytime" Online to Batch conversion algorithm. The "Anytime property" comes from the fact that the last iterate is always a good estimate of $x^*$. The algorithm is very similar to the classical online to batch previously shown. The key difference is that they evaluate the stochastic gradient oracle at $x_t$ rather than the iterates provided by the algorithm $A$, furthermore they incorporate the importance weights $\alpha_t$ which are useful to achieve faster convergence rates on smooth losses. 
-
-\begin{algorithm}
-    \SetKwInOut{Input}{Input}
-    \SetKwInOut{Output}{Output}
-
-    \Input{\#Iterations $T$, Online Algorithm $A$ with convex domain $D$, Non-negative weights $\alpha_t$ with $\alpha_t > 0$}
-    \For{$t=1\dots T$}
-      {
-		Get $x_t = \frac{\sum_{i=1}^t \alpha_i w_i}{\sum_{i=1}^t \alpha_i} $ \\
-		Play $x_t$ and receive subgradient $g_t$ \\
-		Send $l_t(x) = \langle \alpha_t g_t,x\rangle$ to $a$ as the $t$th loss \\
-		Get $w_{t+1}$ from $A$
-      }
-    \Output{$x_T$}
-    \caption{Anytime Online to batch conversion }
-    \label{alg:anytime}
-\end{algorithm}
-
-Different from the standard online to batch conversion, this algorithm is able to achieve the following guarantees for every $x^* \in D$:
+\begin{proof}
+In order to prove this theorem we observe that $\alpha_t(x_t-w_t) = \alpha_{1:t-1}(x_{t-1}-x_t)$, where $\alpha_{1:t-1} = \sum_{i=1}^{t-1} \alpha_i$. First we use the property of convexity to bound $\mathbb{E}[\alpha_t (L(x_t)-L(x^*))]$with $\mathbb{E}[\sum_{t=1}^T \alpha_t \langle g_t,x_t - x^* \rangle ]$, then using the previous observation in conjunction with some simple math adjustments we obtain:
 $$
-\mathbb{E}[L(x_T) - L(x^*)] \leq \frac{\mathbb{E}[R_T(x^*)]}{\sum_{t=1}^T \alpha_t}, 
-$$ 
+\mathbb{E}[\alpha_t(L(x_t)-L(x^*))] \leq \mathbb{E}\bigg[\sum_{t=1}^T \alpha_{1:t-1} (L(x_{t-1})-L(x_t)) \bigg],
+$$
+To conclude the proof of this theorem is sufficient to subtract $\mathbb{E}[\sum_{t=1}^T \alpha_t L(x_t)]$ from both sides and then apply the telescope series to obtain:
+$$
+\mathbb{E}[\alpha_{1:T} L(x_T)-\alpha_{1:T} L(x^*)] \leq \mathbb{E}[R_T(x^*)]
+$$
+$$
+\mathbb{E}[L(x_T)-L(x^*)] \leq \mathbb{E}\bigg[\frac{R_T(x^*)}{\alpha_{1:T}}\bigg].
+$$
+Furthermore, let's define $H_{t-1}$ as the history $g_{t-1},x_{t-1},\dots,g_1,x_1$ and define $G_t = \mathbb{E}[g_t | H_{t-1},x_t,w_t]$ which is the expected value of the subgradient in relation to the past history. Let's define $\epsilon_t = \alpha_t \langle G_t, w_t - x^* \rangle - \langle g_t, w_t - x^* \rangle$ since $g_t$ is independent of all other quantities given $x_t$, we have that $\mathbb{E}[\epsilon_t | H_{t-1},x_t,w_t]=0$. If we sum all over the t's we obtain:
+$$
+\sum_{t=1}^T \epsilon_t = \sum_{t=1}^T  \alpha_t \langle \underbrace{G_t}_\text{($\leq G$)},\underbrace{w_t-x^*}_\text{($\leq B$)} \rangle - \sum_{t=1}^T  \alpha_t \langle \underbrace{g_t}_\text{($\leq G$)},\underbrace{w_t-x^*}_\text{($\leq B$)} \rangle,
+$$
+where $ |\epsilon_t| \leq 2\alpha_t BG$ with probability 1, and using the Azuma-Hoeffding bound with probability at least $1-\delta$ we get $\sum_{t=1}^T \epsilon_t \leq 2BG \sqrt{\sum_{t=1}^T \alpha_t^2 log(2/\delta)} $. This bound is useful to conclude our proof, the steps are similar to the previous part of the proof and with some simple math adjustments we obtain the final result of the theorem.  
+\end{proof}
 
-in particular this bound is valid also for loss functions with some known non-linearity. 
 
 \bibliography{bibliography.bib} 
 \bibliographystyle{ieeetr}

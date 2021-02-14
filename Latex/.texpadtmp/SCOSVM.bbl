@@ -1,0 +1,21 @@
+\begin{thebibliography}{1}
+
+\bibitem{adagrad}
+J.~Duchi, E.~Hazan, and Y.~Singer, ``Adaptive subgradient methods for online
+  learning and stochastic optimization,'' {\em Journal of Machine Learning
+  Research}, vol.~12, pp.~2121--2159, 07 2011.
+
+\bibitem{linearcup}
+Z.~A. Zhu and L.~Orecchia, ``A novel, simple interpretation of nesterov's
+  accelerated method as a combination of gradient and mirror descent,'' {\em
+  CoRR}, vol.~abs/1407.1537, 2014.
+
+\bibitem{accelegrad}
+K.~Y. Levy, A.~Yurtsever, and V.~Cevher, ``Online adaptive methods,
+  universality and acceleration,'' 2018.
+
+\bibitem{cutkosky}
+A.~Cutkosky, ``Anytime online-to-batch conversions, optimism, and
+  acceleration,'' 2019.
+
+\end{thebibliography}
