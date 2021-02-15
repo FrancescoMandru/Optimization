@@ -146,7 +146,7 @@ which increase with $t$, putting emphasis on recent queries of the gradient. As 
 
 \newpage
 
-For the smooth setting Accelegrad requires a number of iterations to get a solution within $\epsilon$ of $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}}$ with $c = DG + \beta D^2log(\beta D/G)$, which means that the algorithm is able to converge as fast as the Accelerated gradient method asymptotically. In reality, since we are dealing with smooth functions we don't need to consider $G$, which means that the constant $c$ is actually equal to $c = \beta D  log(\beta D /\Vert g_0 \Vert)$.
+For the smooth setting Accelegrad requires a number of iterations to get a solution within $\epsilon$ of $\mathcal{O}(\frac{c}{\epsilon})^{\frac{1}{2}}$ with $c = DG + \beta D^2log(\beta D/G)$, which means that the algorithm is able to converge as fast as the Accelerated gradient method asymptotically. Actually, since we are dealing with smooth functions we don't need to consider $G$, which means that the constant $c$ is actually equal to $c = \beta D  log(\beta D /\Vert g_0 \Vert)$.
 
 Considering the non smooth setting the previous algorithm is able to ensure standard sublinear convergence rate of $\mathcal{O}(1/\sqrt T)$. With this rate of convergence Accelegrad requires a number of iterations to get a solution within $\epsilon$ of..., this result is also true for the stochastic optimization setting. In the Appendix we provide a short version of the proofs regarding the convergence rate for these three cases. 
 
