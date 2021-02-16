@@ -581,6 +581,7 @@ where $ |\epsilon_t| \leq 2\alpha_t BG$ with probability 1, and using the Azuma-
 In order to provide the mathematical analysis of the convergence rate of UnixGrad in the different optimization scenarios, classical tools in the online learning literature are taken into account an the convergence analysis is performed in the sense of bounding "weighted regret". Hence, a conversion strategy is adopted to directly translate the weighted regret to convergence rate.
 
 \begin{lemma}[Regret-to-rate conversion]
+\label{regret}
 Consider weighted average 
 $$\bar{x}_{t} =\frac{\alpha_{t} x_{t}+\sum_{i=1}^{t-1} \alpha_{i} x_{i}}{\sum_{i=1}^{t} \alpha_{i}}.$$
 Let $R_{T}\left(x_{*}\right)=\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, g_{t}\right\rangle$ denote the weighted regret after T iterations, $\alpha_{t}=t$ and $g_{t}=\nabla f\left(\bar{x}_{t}\right)$. Then,
@@ -737,7 +738,7 @@ $$
 & \leq 3 D+7 G D T^{3 / 2}
 \end{aligned}
 $$
-We obtain the rate by applying Lemma 1 to the weighted regret bound above
+We obtain the rate by applying Lemma \ref{regret} to the weighted regret bound above
 \end{proof}
 
 \end{theorem}
