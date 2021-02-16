@@ -1,50 +1,211 @@
-\documentclass[12pt]{article}
-\usepackage[margin=0.75in]{geometry}
-\geometry{a4paper}
-\usepackage[T1]{fontenc} % Support Icelandic Characters
-\usepackage[utf8]{inputenc} % Support Icelandic Characters
-\usepackage{graphicx} % Support for including images
-\usepackage{hyperref} % Support for hyperlinks
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Structured General Purpose Assignment
+% LaTeX Template
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% Original author:
+%  Ted Pavlic (http://www.tedpavlic.com)
+% Modified by:
+%  Joe Del Rocco (https://joe.delrocco.org)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%  PACKAGES AND CONFIGURATION
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+\usepackage{geometry}
+\usepackage{fancyhdr} % For custom headers
+\usepackage{lastpage} % To determine the last page for the footer
+\usepackage{extramarks} % For headers and footers
+\usepackage[most]{tcolorbox} % For problem answer sections
+\usepackage{graphicx} % For inserting images
+\usepackage{xcolor} % For link coloring
+\usepackage[hidelinks]{hyperref} % For URL links (no box or color name)
+\usepackage{bm}
 \usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
-\usepackage{graphicx}
-\usepackage{hyperref}
-\usepackage{amsmath}
-\usepackage[table,xcdraw]{xcolor}
-\usepackage{booktabs}
-\usepackage{amsmath, amssymb, amscd, amsthm, amsfonts}
-\usepackage{systeme}
+\usepackage[ansinew]{inputenc} 
+\usepackage{xcolor}
+\usepackage{mathtools}
 \usepackage{wrapfig}
-\usepackage{lipsum}
-\usepackage[linesnumbered,ruled]{algorithm2e}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{booktabs}
+\usepackage[labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{enumerate}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{bigints}
+\usepackage[edges]{forest}
+\usepackage{wrapfig}
+\usepackage[toc,page]{appendix}
 
 \newtheorem{theorem}{Theorem}
-\theoremstyle{definition}
+%\theoremstyle{definition}
 \newtheorem{definition}{Definition}[section]
 
-%------------------------------------------------------------------
-% TITLE
-%------------------------------------------------------------------
-\title{
-\centerline{\includegraphics[width=30mm]{figures/unipd-logo.png}}
-\vspace{0.2 cm}
-A Comparison Analysis of Accelegrad and UnixGrad Optimization Algorithms \\
-\vspace{0.3 cm}
-Optimization
-\large  \\
-\
-\small University of Padova - Master of Science in ICT for Internet and Multimedia
-  }
+\newtheorem{lemma}[theorem]{Lemma}
 
-\author{
-    Francesco Mandruzzato - 1204532\\
-    \small{francesco.mandruzzato.1@studenti.unipd.it}\\
-    Marcello Bullo - 1204533\\
-    \small{marcello.bulllo@studenti.unipd.it}\\
+% Margins
+\geometry{
+a4paper,
+tmargin=1in,
+bmargin=1in,
+lmargin=1in,
+rmargin=1in,
+textwidth=6.5in,
+textheight=9.0in,
+headsep=0.25in
 }
 
+% Header and footer
+\pagestyle{fancy}
+\lhead{\myName} % Top left header
+\chead{\myAssignement} % Top center header
+\rhead{\HomeworkNumber} % Top right header
+\lfoot{\lastxmark} % Bottom left footer
+\cfoot{\thepage} % Bottom center footer
+%&\rfoot{Page\ \thepage\ of\ \pageref{LastPage}} % Bottom right footer
+\renewcommand\headrulewidth{0.4pt} % Size of the header rule
+%\renewcommand\footrulewidth{0.4pt} % Size of the footer rule
+
+%% Other configurations
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parskip{1pt} % Ensures paragraphs are still recognizable as such
+\setcounter{secnumdepth}{0} % Removes default section numbers
+%\setcounter{tocdepth}{3} % Sets depth of table of contents
+\linespread{1.1}
+
+% Template values
+\newcommand{\myLogo}{figures/logo1.pdf}
+\newcommand{\myName}{Marcello Bullo}
+\newcommand{\myJobTitle}{MSc. students}
+\newcommand{\myStudentID}{1204533}
+\newcommand{\myCompany}{University of Padova}
+\newcommand{\myLocation}{1701 Lincoln Blvd, San Francisco, CA}
+\newcommand{\myURL}{www.starfleet.edu}
+\newcommand{\myEmail}{marcello.bullo@studenti.unipd.it}
+\newcommand{\myCourse}{Optimization}
+\newcommand{\mySection}{Spring 2325}
+\newcommand{\myTeacher}{Francesco Rinaldi}
+\newcommand{\HomeworkNumber}{Final Project}
+\newcommand{\myAssignement}{Accelegrad and UnixGrad: a Comparison Analysis}
+\newcommand{\myDueDate}{19th February\ 2021}
+
+%----------------------------------------------------------------------------------------
+%  DOCUMENT STRUCTURE (MACROS & ENVIRONMENTS)
+%----------------------------------------------------------------------------------------
+
+% Colored links macro
+\newcommand{\hrefcol}[3] {\href{#1}{\textcolor{#3}{#2}}}
+
+% Creates a counter to keep track of the number of problems
+\newcounter{homeworkProblemCounter}
+
+% Macro for custom title page signature header
+\newsavebox{\myTitleSignature}
+\sbox{\myTitleSignature}{%
+%\begin{tabular*}{\textwidth}{@{}lr@{\extracolsep{0.125in}}l@{}}%
+\begin{tabular*}{\textwidth}{@{}l|@{\extracolsep{0.125in}}l@{}}%
+\parbox{4.25in}{\raggedright{\includegraphics[width=0.45\linewidth]{\myLogo}}} &%
+%\parbox{1.8in}{\raggedleft{\includegraphics[width=0.16\linewidth]{Figures/dei_logo.pdf}}} &%
+\parbox[c][]{2.2in}{{\textbf{\myName} \par}
+					{\textbf{Francesco Mandruzzato} \par}
+                    {\small \myJobTitle \par}
+                    {\small \myCompany \par}
+                    {\small ID: \myStudentID - 1204532 \par}
+                    {\small \hrefcol{mailto:\myEmail}{\myEmail}{black} \par}
+                    {\small \hrefcol{mailto:francesco.mandruzzato.1@studenti.unipd.it}{francesco.mandruzzato.1@studenti.unipd.it}{black}} \par}
+\end{tabular*}}
+
+% Folder tree style
+%\definecolor{folderbg}{RGB}{124,166,198}
+%\definecolor{folderborder}{RGB}{110,144,169}
+%
+%\def\Size{4pt}
+%\tikzset{
+%  folder/.pic={
+%    \filldraw[draw=folderborder,top color=folderbg!50,bottom color=folderbg]
+%      (-1.05*\Size,0.2\Size+5pt) rectangle ++(.75*\Size,-0.2\Size-5pt);  
+%    \filldraw[draw=folderborder,top color=folderbg!50,bottom color=folderbg]
+%      (-1.15*\Size,-\Size) rectangle (1.15*\Size,\Size);
+%  }
+%}
+
+
+ \definecolor{folderbg}{RGB}{124,166,198}
+\definecolor{folderborder}{RGB}{110,144,169}
+\newlength\Size
+\setlength\Size{4pt}
+\tikzset{%
+  folder/.pic={%
+    \filldraw [draw=folderborder, top color=folderbg!50, bottom color=folderbg] (-1.05*\Size,0.2\Size+5pt) rectangle ++(.75*\Size,-0.2\Size-5pt);
+    \filldraw [draw=folderborder, top color=folderbg!50, bottom color=folderbg] (-1.15*\Size,-\Size) rectangle (1.15*\Size,\Size);
+  },
+  file/.pic={%
+    \filldraw [draw=folderborder, top color=folderbg!5, bottom color=folderbg!10] (-\Size,.4*\Size+5pt) coordinate (a) |- (\Size,-1.2*\Size) coordinate (b) -- ++(0,1.6*\Size) coordinate (c) -- ++(-5pt,5pt) coordinate (d) -- cycle (d) |- (c) ;
+  },
+}
+\forestset{%
+  declare autowrapped toks={pic me}{},
+  pic dir tree/.style={%
+    for tree={%
+      folder,
+      font=\ttfamily,
+      grow'=0,
+    },
+    before typesetting nodes={%
+      for tree={%
+        edge label+/.option={pic me},
+      },
+    },
+  },
+  pic me set/.code n args=2{%
+    \forestset{%
+      #1/.style={%
+        inner xsep=2\Size,
+        pic me={pic {#2}},
+      }
+    }
+  },
+  pic me set={directory}{folder},
+  pic me set={file}{file},
+}
+
+
+%----------------------------------------------------------------------------------------
+%   TITLE PAGE
+%----------------------------------------------------------------------------------------
 \begin{document}
 
-\maketitle
+% Blank out the traditional title page
+\title{\vspace{-1.2in}} % no title name
+\author{} % no author name
+\date{} % no date listed
+\maketitle % makes this a title page
+
+% Use custom title macro instead
+\usebox{\myTitleSignature}
+\vspace{0.3in} % spacing below title header
+
+% Assignment title
+{\centering \huge \textsc{\HomeworkNumber}:\\ \myAssignement \par}
+{\centering \noindent\rule{4.25in}{0.1pt} \par}
+\vspace{0.in}
+{\centering \myCourse, \myTeacher \par}
+{\centering \myDueDate \par}
+%{\centering Prepared w/ \LaTeX \par}
+\vspace{0.3in}
+%{\centering \noindent\rule{\textwidth}{0.6pt} \par}
+%\vspace{-0.17in}
+%{\centering \noindent\rule{\textwidth}{0.5pt} \par}
+
+% Table of Contents
+%\tableofcontents
+%\newpage
+
 
 \section{Introduction}
 
@@ -177,6 +338,19 @@ Considering the non smooth setting the previous algorithm is able to ensure stan
 \subsection{Previous related works}
 \subsection{UnixGrad algorithm setting}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
 \section{Comparison Results}
 
 In this section we provide a comparison between AcceleGrad and UnixGrad. We test the two algorithm with some SVM problems taken from LIBSVM. In particular we worked with \emph{breast-cancer} and \emph{adult} datasets. We try to minimize the L2-regularized squared hinge loss using random mini-batches of size 5, with random weights initialization. For both UnixGrad and Accelegrad we measure the performance with respect to the average iterate which results in a more stable behaviour. 
@@ -271,11 +445,13 @@ in particular this bound is valid also for loss functions with some known non-li
 \label{jensen}
 \end{definition}
 
+\bibliography{biblio}
+\bibliographystyle{ieeetr}
 
 
-
-
-\section{Appendix with main proofs}
+\newpage
+\begin{appendices}
+\section{Accelegrad}
 
 \begin{theorem}
 Assume that $f$ is convex and $\beta$-smooth. Let $K$ be a convex set with bounded diameter D, and assume there exists a global minimizer for $f$ in $K$. Then Algorithm \ref{alg:accelegrad-algo} with weights equal to Equation \ref{alpha} and learning rate as in Equation \ref{learning-1} ensures:
@@ -398,9 +574,178 @@ where $ |\epsilon_t| \leq 2\alpha_t BG$ with probability 1, and using the Azuma-
 \end{proof}
 
 
-\bibliography{bibliography.bib} 
-\bibliographystyle{ieeetr}
+
+
+\section{Unixgrad}
+\subsection{Regret-to-rate conversion}
+In order to provide the mathematical analysis of the convergence rate of UnixGrad in the different optimization scenarios, classical tools in the online learning literature are taken into account an the convergence analysis is performed in the sense of bounding "weighted regret". Hence, a conversion strategy is adopted to directly translate the weighted regret to convergence rate.
+
+\begin{lemma}[Regret-to-rate conversion]
+Consider weighted average 
+$$\bar{x}_{t} =\frac{\alpha_{t} x_{t}+\sum_{i=1}^{t-1} \alpha_{i} x_{i}}{\sum_{i=1}^{t} \alpha_{i}}.$$
+Let $R_{T}\left(x_{*}\right)=\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, g_{t}\right\rangle$ denote the weighted regret after T iterations, $\alpha_{t}=t$ and $g_{t}=\nabla f\left(\bar{x}_{t}\right)$. Then,
+$$
+f\left(\bar{x}_{T}\right)-f\left(x_{*}\right) \leq \frac{2 R_{T}\left(x_{*}\right)}{T^{2}}
+$$
+\begin{proof}
+	
+	Proof. Let's define $A_{t}=\sum_{i=1}^{t} \alpha_{i} .$ Then, by definition, we could express $x_{t}$ as
+
+\begin{equation}
+\label{xt}
+x_{t}=\frac{A_{t}}{\alpha_{t}} \bar{x}_{t}-\frac{A_{t-1}}{\alpha_{t}} \bar{x}_{t-1}
+\end{equation}
+
+Then, use Eq.~(\ref{xt}) and replace $g_{t}$ by $\nabla f\left(\bar{x}_{t}\right)$ in the weighted regret expression, i.e.
+\begin{equation*}
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle &=\sum_{t=1}^{T} \alpha_{t}\left\langle\frac{A_{t}}{\alpha_{t}} \bar{x}_{t}-\frac{A_{t-1}}{\alpha_{t}} \bar{x}_{t-1}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle \\
+&=\sum_{t=1}^{T} \alpha_{t}\left\langle\frac{A_{t}}{\alpha_{t}}\left(\bar{x}_{t}-x_{*}\right)-\frac{A_{t-1}}{\alpha_{t}}\left(\bar{x}_{t-1}-x_{*}\right), \nabla f\left(\bar{x}_{t}\right)\right\rangle \qquad \left(-x_*= \frac{A_{t-1}}{\alpha_t}x_* - \frac{A_{t}}{\alpha_t}x_*\right)\\
+&=\sum_{t=1}^{T} A_{t}\left\langle\bar{x}_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle-A_{t-1}\left\langle\bar{x}_{t-1}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle \\
+&=\sum_{t=1}^{T}(\alpha_t+A_{t-1})\left\langle\bar{x}_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right\rangle\right)-A_{t-1}\left\langle\bar{x}_{t-1}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle\\
+&=\sum_{t=1}^{T}\alpha_{t}\left\langle\bar{x}_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle+A_{t-1}\left\langle\bar{x}_{t}-\bar{x}_{t-1}, \nabla f\left(\bar{x}_{t}\right)\right\rangle\\
+& \geq \sum_{t=1}^{T} \alpha_{t}\left(f\left(\bar{x}_{t}\right)-f\left(x_{*}\right)\right)+\sum_{t=1}^{T} \sum_{i=1}^{t-1} \alpha_{i}\left(f\left(\bar{x}_{t}\right)-f\left(\bar{x}_{t-1}\right)\right) \qquad \left( f(x)-f(y) \leq \nabla f(x)^\top(x-y) \right)
+\end{aligned}
+\end{equation*}
+where in the last line we use $f(y) \geq f(x) + \nabla f(x)^\top(y-x)$ and multiply by $(-1)$. We also take $\alpha_0=0$ and $A_0 = 0$. Then, we telescope the double summation and reorganize the terms
+
+\begin{equation*}
+\begin{aligned}
+&=\sum_{t=1}^{T} \alpha_{t}\left(f\left(\bar{x}_{t}\right)-f\left(x_{*}\right)\right)+\sum_{t=1}^{T-1} \alpha_{t}\left(f\left(\bar{x}_{T}\right)-f\left(\bar{x}_{t}\right)\right) \\
+&=\alpha_{T}\left(f\left(\bar{x}_{T}\right)-f\left(x_{*}\right)\right)+\sum_{t=1}^{T-1} \alpha_{t}\left(f\left(\bar{x}_{t}\right)-f\left(x_{*}\right)+f\left(\bar{x}_{T}\right)-f\left(\bar{x}_{t}\right)\right) \\
+&=\sum_{t=1}^{T} \alpha_{t}\left(f\left(\bar{x}_{T}\right)-f\left(x_{*}\right)\right)
+\end{aligned}
+\end{equation*}
+
+Having simplified the expression, we divide both sides by $A_{T}$ and conclude the proof. Observe that $A_{T} \geq \frac{T^{2}}{2},$ hence,
+
+\begin{equation*}
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left(f\left(\bar{x}_{T}\right)-f\left(x_{*}\right)\right) & \leq \sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle \\
+\frac{1}{A_{T}} \sum_{t=1}^{T} \alpha_{t}\left(f\left(\bar{x}_{T}\right)-f\left(x_{*}\right)\right) & \leq \frac{1}{A_{T}} \sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, \nabla f\left(\bar{x}_{t}\right)\right\rangle \\
+f\left(\bar{x}_{T}\right)-f\left(x_{*}\right) & \leq \frac{2 R_{T}\left(x_{*}\right)}{T^{2}}
+\end{aligned}
+\end{equation*}	
+\end{proof}	
+\end{lemma}
+
+\subsection{Non-smooth Setting}
+Before starting with the mathematical analysis of the convergence rate of UnixGrad in the non-smooth setting, we recall some useful lemmas.
+
+\begin{lemma}
+\label{ineq:alphas}
+	Let $\left\{a_{i}\right\}_{i=1, \ldots, n}$ be a sequence of non negative numbers. Then, it holds that
+$$
+\sqrt{\sum_{i=1}^{n} a_{i}} \leq \sum_{i=1}^{n} \frac{a_{i}}{\sum_{j=1}^{i} a_{j}} \leq 2 \sqrt{\sum_{i=1}^{n} a_{i}}
+$$
+\begin{proof}
+	Please refer to \cite{accelegrad} for the proof.
+\end{proof}
+\end{lemma}
+
+\begin{lemma}
+
+\begin{equation}
+\label{eq:young}
+	\begin{aligned}
+		\alpha_{t}\left\|g_{t}-M_{t}\right\|_{*}\left\|x_{t}-y_{t}\right\|=\inf _{\rho>0}\left\{\frac{\rho}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{\alpha_{t}^{2}}{2 \rho}\left\|x_{t}-y_{t}\right\|^{2}\right\}
+	\end{aligned}
+\end{equation}
+
+\begin{proof}
+	Given two nonnegative real numbers $a\geq 0, b\geq 0 $ and two real number $p>0$ and $q>0$ such that $1/p + 1/q = 1$, then 
+	$$
+		ab \leq \dfrac{a^p}{p} + \dfrac{b^q}{q}. \qquad \text{(Young's inequality)}
+	$$
+	By using it with $p,q=2$ we have that
+	$$
+		\alpha_{t}\left\|g_{t}-M_{t}\right\|_{*}\left\|x_{t}-y_{t}\right\| \leq \frac{1}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{\alpha_{t}^{2}}{2 }\left\|x_{t}-y_{t}\right\|^{2}.
+	$$
+	Now, since the equality holds when $a^p=b^q$ we can use mathematical trick and formulate the statement as
+	$$
+		\alpha_{t}\left\|g_{t}-M_{t}\right\|_{*}\left\|x_{t}-y_{t}\right\|=\inf _{\rho>0}\left\{\frac{\rho}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{\alpha_{t}^{2}}{2 \rho}\left\|x_{t}-y_{t}\right\|^{2}\right\}.
+	$$
+\end{proof}
+\end{lemma}
+
+\subsubsection{Deterministic setting}
+\begin{theorem}
+	Consider the constrained optimization setting, where $f: \mathcal{K} \rightarrow \mathbb{R}$ is a proper, convex and $G$-Lipschitz function defined over compact, convex set $\mathcal{K}$. Let $x^{*} \in \min _{x \in \mathcal{K}} f(x)$. Then, UnixGrad algorithm guarantees
+$$
+f\left(\bar{x}_{T}\right)-\min _{x \in \mathcal{K}} f(x) \leq \frac{7 D \sqrt{1+\sum_{t=1}^{T} \alpha_{t}^{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}}-D}{T^{2}} \leq \frac{6 D}{T^{2}}+\frac{14 G D}{\sqrt{T}}
+$$
+
+\begin{proof}
+$$
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, g_{t}\right\rangle=\sum_{t=1}^{T} \underbrace{\alpha_{t}\left\langle x_{t}-y_{t}, g_{t}-M_{t}\right\rangle}_{(\mathrm{A})}+\underbrace{\alpha_{t}\left\langle x_{t}-y_{t}, M_{t}\right\rangle}_{(\mathrm{B})}+\underbrace{\alpha_{t}\left\langle y_{t}-x^{*}, g_{t}\right\rangle}_{(\mathrm{C})}
+$$
+
+\textbf{Bounding (A)}
+$$
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-y_{t}, g_{t}-M_{t}\right\rangle & \leq \sum_{t=1}^{T} \alpha_{t}\left\|g_{t}-M_{t}\right\|_{*}\left\|x_{t}-y_{t}\right\| \quad \text{ (Hölder's Inequality) } \\
+& \leq \sum_{t=1}^{T} \frac{\rho}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{\alpha_{t}^{2}}{2 \rho}\left\|x_{t}-y_{t}\right\|^{2} \quad \text { (Equation (\ref{eq:young})) }
+\end{aligned}
+$$
+By setting $\rho=\alpha_{t}^{2} \eta_{t+1}\,\,(\alpha_t, \eta_{t+1}>0)$, we get the following upper bound for term (A),
+$$
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-y_{t}, g_{t}-M_{t}\right\rangle \leq \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{1}{2 \eta_{t+1}}\left\|x_{t}-y_{t}\right\|^{2}
+$$
+
+\textbf{Bounding (B)}\\
+In order to find an upper-bound for this term, we have to exploit the first order optimality condition of $x_t$, that is $\nabla f(x_t)^\top(y-x_t) \geq 0, \, \forall y\, \text{feasible}$ (all feasible directions from $x$ are aligned with increasing gradient). Since $\nabla f(x_t) = \alpha_t M_t + \frac{1}{\eta_t}\nabla_x \mathcal{D}_{\mathcal{R}}(x_t, y_{t-1})$, then 
+$$ 
+	\alpha_t \left\langle y_{t}-x_{t}, M_{t}\right\rangle + \frac{1}{\eta_t}\nabla_x \mathcal{D}_{\mathcal{R}}(x_t, y_{t-1})^\top (y_{t}-x_{t}) \geq 0.
+$$
+By simply rearranging the above inequality we get
+$$
+	\frac{1}{\eta_t}\nabla_x \mathcal{D}_{\mathcal{R}}(x_t, y_{t-1})^\top (y_{t}-x_{t}) \geq \alpha_t \left\langle x_{t} - y_{t}, M_{t}\right\rangle.
+$$
+
+
+Now the upper-bound becomes straightforward.
+$$
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-y_{t}, M_{t}\right\rangle & \leq \sum_{t=1}^{T} \frac{1}{\eta_{t}} \nabla_{x} D_{\mathcal{R}}\left(x_{t}, y_{t-1}\right)^{T}\left(y_{t}-x_{t}\right) \quad \text { (Optimality for } \left.x_{t}\right) \\
+&=\sum_{t=1}^{T} \frac{1}{\eta_{t}}\left(D_{\mathcal{R}}\left(y_{t}, y_{t-1}\right)-D_{\mathcal{R}}\left(x_{t}, y_{t-1}\right)-D_{\mathcal{R}}\left(y_{t}, x_{t}\right)\right)
+\end{aligned}
+$$
+
+\textbf{Bounding (C)}\\
+Following the same procedure used in the previous bound we find the upper-bound also for the third term.
+$$
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left\langle y_{t}-x^{*}, g_{t}\right\rangle & \leq \sum_{t=1}^{T} \frac{1}{\eta_{t}} \nabla_{x} D_{\mathcal{R}}\left(y_{t}, y_{t-1}\right)^{T}\left(x^{*}-y_{t}\right) \quad \text { (Optimality for } \left.y_{t}\right) \\
+&=\sum_{t=1}^{T} \frac{1}{\eta_{t}}\left(D_{\mathcal{R}}\left(x^{*}, y_{t-1}\right)-D_{\mathcal{R}}\left(y_{t}, y_{t-1}\right)-D_{\mathcal{R}}\left(x^{*}, y_{t}\right)\right)
+\end{aligned}
+$$
+
+\textbf{Final Bound}
+$$
+\begin{aligned}
+\sum_{t=1}^{T} \alpha_{t}\left\langle x_{t}-x_{*}, g_{t}\right\rangle \leq & \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{1}{2 \eta_{t+1}}\left\|x_{t}-y_{t}\right\|^{2} \\
+&+\frac{1}{\eta_{t}}\left(D_{\mathcal{R}}\left(x^{*}, y_{t-1}\right)-D_{\mathcal{R}}\left(x^{*}, y_{t}\right)-D_{\mathcal{R}}\left(x_{t}, y_{t-1}\right)-D_{\mathcal{R}}\left(y_{t}, x_{t}\right)\right) \\
+\leq & \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{1}{2 \eta_{t+1}}\left\|x_{t}-y_{t}\right\|^{2} \\
+&+\frac{1}{\eta_{t}}\left(D_{\mathcal{R}}\left(x^{*}, y_{t-1}\right)-D_{\mathcal{R}}\left(x^{*}, y_{t}\right)-\frac{1}{2}\left(\left\|x_{t}-y_{t}\right\|^{2}+\left\|x_{t}-y_{t-1}\right\|^{2}\right)\right) \\
+\leq & \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\sum_{t=1}^{T-1}\left(\frac{1}{\eta_{t+1}}-\frac{1}{\eta_{t}}\right) D_{\mathcal{R}}\left(x^{*}, y_{t}\right) \\
+&+\sum_{t=1}^{T}\left(\frac{1}{\eta_{t+1}}-\frac{1}{\eta_{t}}\right)\left\|x_{t}-y_{t}\right\|^{2}+\frac{1}{\eta_{1}} D^{2} \\
+\leq & \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\sum_{t=1}^{T}\left(\frac{1}{\eta_{t+1}}-\frac{1}{\eta_{t}}\right)\left\|x_{t}-y_{t}\right\|^{2}+\frac{D^{2}}{\eta_{T}}+\frac{D}{2} \\
+\leq & \sum_{t=1}^{T} \frac{\alpha_{t}^{2} \eta_{t+1}}{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+D^{2}\left(\frac{2}{\eta_{T+1}}+\frac{1}{\eta_{T}}\right)+\frac{D}{2} \\
+& \leq D \sum_{t=1}^{T} \frac{\alpha_{t}^{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}}{\sqrt{1+\sum_{i=1}^{t} \alpha_{t}^{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}}}+\frac{3}{2} D \sqrt{1+\sum_{t=1}^{T} \alpha_{t}^{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}+\frac{D}{2}} \\
+& \leq \frac{7}{2} D \sqrt{1+\sum_{t=1}^{T} \alpha_{t}^{2}\left\|g_{t}-M_{t}\right\|_{*}^{2}-\frac{D}{2}} \\
+& \leq 3 D+7 G D \sqrt{\sum_{t=1}^{T} \alpha_{t}^{2}} \\
+& \leq 3 D+7 G D T^{3 / 2}
+\end{aligned}
+$$
+We obtain the rate by applying Lemma 1 to the weighted regret bound above
+\end{proof}
+
+\end{theorem}
+
+
+
+
+\end{appendices}
+
+
 \end{document}
-
-
-
